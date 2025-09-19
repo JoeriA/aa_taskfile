@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: '3'
+
+tasks:
+
+  _main:
+    cmds:
+      - task: install_vscode
+
+  install_vscode:
+    cmds:
+      - sudo snap install code --classic
+    status:
+      - test -f /snap/bin/code
