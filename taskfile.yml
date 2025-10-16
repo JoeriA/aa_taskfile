@@ -24,9 +24,10 @@ tasks:
 
   reinstall_code_tunnel_service:
     cmds:
-      - code tunnel service uninstall
-      - code tunnel service install
-      - code tunnel service log
+      - export XDG_RUNTIME_DIR=/run/user/$(id -u)
+      - systemctl restart --user code-tunnel
+      - sleep 1
+      - systemctl status --user code-tunnel
     # check log of code tunnel service, check last 5 lines, give error if it contains the given string
     status:
       - '{ timeout 1s code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
