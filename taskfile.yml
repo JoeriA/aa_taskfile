@@ -24,7 +24,7 @@ tasks:
 
   reinstall_code_tunnel_service:
     cmds:
-      - export XDG_RUNTIME_DIR=/run/user/$(id -u)
+      - echo "export XDG_RUNTIME_DIR=/run/user/$(id -u)"
       - systemctl restart --user code-tunnel
       - sleep 1
       - systemctl status --user code-tunnel
