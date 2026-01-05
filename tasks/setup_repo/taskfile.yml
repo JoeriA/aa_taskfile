@@ -14,8 +14,8 @@ vars:
 # these vars are used and must be defined in the taskfile in your repo
 # vars:
 #   PYTHON_VERSION: 3.11
-  USE_CONDA: false
-  USE_POETRY: true
+#   USE_CONDA: false
+#   USE_POETRY: true
 #   PROJECT_NAME: amazing_project
 #   SUBMODULES: ["lib/azureml_utils"]
 
@@ -34,10 +34,8 @@ tasks:
       - task: '{{if .USE_POETRY}}install_poetry{{else}}install_uv{{end}}'
       # create environment
       - task: '{{if .USE_CONDA}}create_conda_env{{else}}create_uv_env{{end}}'
-      # for uv, set uv project environment variable permanently
-      - task: '{{if .not .USE_POETRY}}set_uv_project_env_source{{end}}'
       # install dependencies
-      - task: '{{if .USE_POETRY}}poetry_install{{else}}uv_sync{{end}}'
+      - task: '{{if .USE_POETRY}}poetry_sync{{else}}uv_sync{{end}}'
       # install precommit hook for this repo
       - task: precommit_install
       # install precommit hooks for submodules
@@ -45,11 +43,13 @@ tasks:
         task: precommit_install
         vars:
           DIR: '{{.ITEM}}'
-      - task: print_result
+      - task: '{{if .USE_CONDA}}print_conda_path{{else}}print_uv_path{{end}}'
   
+  # check for some variable conflicts
   check_vars:
     silent: true
     cmds:
+      - echo .USE_CONDA={{.USE_CONDA}} .USE_POETRY={{.USE_POETRY}}
       - '{{if and .USE_CONDA .USE_POETRY}}echo "Using conda and poetry"{{end}}'
       - '{{if not .USE_POETRY | and .USE_CONDA}}echo "Using conda and uv"{{end}}'
       - '{{if not .USE_CONDA | and (not .USE_POETRY)}}echo "Using uv without conda"{{end}}'
@@ -59,6 +59,7 @@ tasks:
         exit 1
         {{end}}
 
+  # init submodules (they are empty after cloning a repo)
   init_submodules:
     cmds:
       - git submodule update --init
@@ -66,6 +67,7 @@ tasks:
       # check whether submodules are already directories (bit complicated to reuse SUBMODULES var)
       - for path in {{join " " .SUBMODULES}}; do [ -d "$path" ]; done
 
+  # install poetry
   install_poetry:
     cmds:
       # default installation dir didn't work, install it somewhere where it will be picked up by $PATH (or add it)
@@ -74,6 +76,7 @@ tasks:
     status:
       - poetry --version
 
+  # install uv
   install_uv:
     cmds:
       # default installation dir didn't work, install it somewhere where it will be picked up by $PATH (or add it)
@@ -81,6 +84,7 @@ tasks:
     status:
       - uv --version
 
+  # create python environment with uv
   create_uv_env:
     env:
       UV_PROJECT_ENVIRONMENT: "{{.VENV_DIR}}"
@@ -89,28 +93,34 @@ tasks:
     status:
       - test -d {{.VENV_DIR}}
 
+  # create python environment with conda
   create_conda_env:
     cmds:
       - conda env create -f environment.yml -n {{.PROJECT_NAME}}
     status:
       - test -d {{.VENV_DIR}}
   
-  poetry_install:
+  # install python dependencies with poetry
+  poetry_sync:
     cmds:
-      - poetry install
+      - poetry env use {{.VENV_DIR}}/bin/python
+      - poetry sync
 
+  # install python dependencies with uv
   uv_sync:
     env:
       UV_PROJECT_ENVIRONMENT: "{{.VENV_DIR}}"
     cmds:
+      - task: set_uv_project_env_source
       # use UV_SYNC_EXTRA to pass other options (such as which groups to sync)
       - uv sync {{.UV_SYNC_EXTRA}}
     preconditions:
       - sh: test -n "${UV_INDEX_AA_PACKAGES_USERNAME}"
-        msg: "No environment variable UV_INDEX_AA_PACKAGES_USERNAME found. See .env.example."
+        msg: "No environment variable UV_INDEX_AA_PACKAGES_USERNAME found. See https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/234095159/UV#Setup-private-artifacts-feed-(optional)."
       - sh: test -n "${UV_INDEX_AA_PACKAGES_PASSWORD}"
-        msg: "No environment variable UV_INDEX_AA_PACKAGES_PASSWORD found. See .env.example."
+        msg: "No environment variable UV_INDEX_AA_PACKAGES_PASSWORD found. See https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/234095159/UV#Setup-private-artifacts-feed-(optional)."
 
+  # for uv, set uv project environment variable permanently
   set_uv_project_env_source:
     cmds:
       - echo "export UV_PROJECT_ENVIRONMENT={{.VENV_DIR}}" >> "{{.VENV_DIR}}/bin/activate"
@@ -120,6 +130,7 @@ tasks:
     status:
       - grep -q "UV_PROJECT_ENVIRONMENT" "{{.VENV_DIR}}/bin/activate"
 
+  # install precommit hook
   precommit_install:
     # option to change working directory, to use for submodules
     dir: '{{.DIR}}'
@@ -136,13 +147,20 @@ tasks:
       # if not, no big deal, pre-commit hook will be re-installed but is very fast)
       - test -f {{if eq .DIR "."}}.git{{else}}../../.git/modules/{{.DIR}}{{end}}/hooks/pre-commit
 
+  # register repo for git maintenance (periodically optimize big repo cache)
   register_git_maintenance:
     cmds:
       # add current repo to git maintenance
       # for setup check https://stackoverflow.com/a/79741474
       - git maintenance register
-    
-  print_result:
+  
+  # print final message
+  print_uv_path:
     cmds:
-      - echo "Setup complete. For vscode, select interpreter (ctrl+shift+p) {{.VENV_DIR}}/bin/python."
+      - echo "Setup complete. For vscode, select interpreter (ctrl+shift+p) > Enter interpreter path > Find > {{.VENV_DIR}}/bin/python."
+    silent: true
+
+  print_conda_path:
+    cmds:
+      - echo "Setup complete. For vscode, select interpreter (ctrl+shift+p) {{.PROJECT_NAME}} (Conda)."
     silent: true

@@ -24,6 +24,7 @@ vars:
 includes:
   aa:
     taskfile: https://github.com/JoeriA/aa_taskfile.git//taskfile.yml?ref=main
+    # taskfile: ../aa_taskfile/taskfile.yml  # you could also refer to the cloned repo
     flatten: true
 
 # for setting up the repo (environment, precommit), run `task setup_repo`

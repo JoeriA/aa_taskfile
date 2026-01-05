@@ -16,7 +16,7 @@ tasks:
   # setup the current git repo: creating python environment, installing precommit, etc.
   setup_repo:
     cmds:
-      - setup_repo:_main
+      - task: setup_repo:_main
 
   # run precommit in current directory
   precommit_run:
