@@ -1,40 +1,91 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
 
+# this child taskfile contains all tasks
+# you should not call these tasks directly, but only from a parent taskfile, see readme.
+
 version: '3'
+
+includes:
+  setup_compute_instance: tasks/setup_compute_instance
+  create_new_repo: tasks/create_new_repo
+  setup_repo: tasks/setup_repo
+  openwebui: tasks/openwebui
 
 tasks:
 
-  _main:
+  # setup the current git repo: creating python environment, installing precommit, etc.
+  setup_repo:
     cmds:
-      - task: install_vscode
-      - task: enable_code_tunnel_service
+      - setup_repo:_main
 
-  install_vscode:
+  # run precommit in current directory
+  precommit_run:
+    # option to change working directory, to use for submodules
+    dir: '{{.DIR}}'
+    vars:
+      DIR: '{{.DIR| default "."}}'
     cmds:
-      - sudo snap install code --classic
-    status:
-      - test -f /snap/bin/code
-
-  enable_code_tunnel_service:
-    cmds:
-      - sudo loginctl enable-linger azureuser
-      - code tunnel service install
-      - echo "Make sure log does not contain 'The authorization request is still pending', otherwise run task reinstall_code_tunnel_service."
-      - code tunnel service log
-  
-  set_xdg:
-    cmds:
-      - echo "export XDG_RUNTIME_DIR=/run/user/$(id -u)"
-
-  reinstall_code_tunnel_service:
-    cmds:
-      - systemctl restart --user code-tunnel
-      - sleep 1
-      - echo "Follow login instructions below, then stop status log with ctrl+c"
-      - systemctl status --user code-tunnel
-    # check log of code tunnel service, check last 5 lines, give error if it contains the given string
-    status:
-      - '{ timeout 1s code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
+      - pre-commit run --all-files
     preconditions:
-      - sh: '[ -n "${XDG_RUNTIME_DIR}" ]'
-        msg: XDG_RUNTIME_DIR is not set, please run 'eval $(task --taskfile https://github.com/JoeriA/aa_taskfile.git//taskfile.yml?ref=main set_xdg)' first!
+      - sh: pre-commit --version
+        msg: "Pre-commit not installed. Switch to the correct venv or install pre-commit with uv."
+
+  # run pytest in current directory (with uv for now)
+  pytest_run:
+    cmds:
+      # explicitly pass tests directory, otherwise does not find tests (maybe has to do with symlink?)
+      - uv run pytest tests/
+
+  # clean up old git branches in local repo
+  cleanup_git:
+    cmds:
+      # remove remote branches no longer on remote
+      - git remote prune origin
+      # remove local branches already merged to main
+      - git branch --merged develop | egrep -v "(^\*|main|develop)" | xargs git branch -d
+  
+  # create new git repo based on raptor cookiecutter
+  create_new_repo:
+    vars:
+      REPO_TYPE: '{{.REPO_TYPE | default "package_repo"}}'
+      COOKIECUTTER_URL: '{{.COOKIECUTTER_URL | default "git@ssh.dev.azure.com:v3/GemeenteRotterdam/DAPR/raptor"}}'
+      DEVOPS_ROOT: "https://dev.azure.com/GemeenteRotterdam/DAPR"
+      DEVOPS_ROOT_SSH: "git@ssh.dev.azure.com:v3/GemeenteRotterdam/DAPR"
+      REPO_NAME_DIRTY: '{{if .REPO_TYPE | contains "package"}}pkg_{{end}}{{.NAME}}'
+      REPO_NAME: '{{.REPO_NAME_DIRTY | lower | replace " " "" | replace "-" ""}}'
+    dir: '{{.USER_WORKING_DIR}}'
+    requires:
+      vars:
+        - NAME
+        - name: REPO_TYPE
+          enum: [package_repo, project_repo]
+    prompt: 'This will setup a {{.REPO_TYPE}} with {{if .REPO_TYPE | contains "package"}}package_name={{.NAME}} and {{end}}repo_name={{.REPO_NAME}} within directory {{.USER_WORKING_DIR}}. Is this correct?'
+    cmds:
+      - cmd: echo "Follow the raptor cookiecutter steps"
+        silent: true
+      - cookiecutter {{.COOKIECUTTER_URL}} --directory {{.REPO_TYPE}} {{if .REPO_TYPE | contains "package"}}package_name={{.NAME}}{{end}} repo_name={{.REPO_NAME}}
+      - task: create_new_repo:setup_devops_link
+        vars:
+          RUN_DIR: '{{.USER_WORKING_DIR}}/{{.REPO_NAME}}'
+          REPO_NAME: '{{.REPO_NAME}}'
+          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
+          DEVOPS_ROOT_SSH: '{{.DEVOPS_ROOT_SSH}}'
+      - task: create_new_repo:setup_default_branch
+        vars:
+          REPO_NAME: '{{.REPO_NAME}}'
+          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
+      - task: create_new_repo:setup_build_pipeline
+        vars:
+          REPO_NAME: '{{.REPO_NAME}}'
+          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
+      - task: create_new_repo:setup_build_policies
+        vars:
+          REPO_NAME: '{{.REPO_NAME}}'
+          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
+      - cmd: echo "Done, you probably want to run the task 'setup_repo' within the repo directory next!"
+        silent: true
+    preconditions:
+      - sh: cookiecutter --version
+        msg: "First install cookiecutter with 'pip install cookiecutter'"
+      - sh: '[ -n "${COOKIECUTTER_CONFIG}" ]'
+        msg: "For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/x/15unBQ"

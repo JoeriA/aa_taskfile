@@ -1,0 +1,29 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+# this parent taskfile does not contain tasks but imports them from the child taskfile
+# copy this taskfile to your package/project repo and start using it!
+
+version: '3'
+
+# you could overwrite UV_INSTALL_DIR, CONDA_ENV_DIR and/or UV_VENV_DIR, shouldn't be necessary
+dotenv: ['.env']
+
+vars:
+  PYTHON_VERSION: 3.11
+  # use conda for python environment (will use uv venv otherwise). Must be true when using poetry instead of uv!
+  USE_CONDA: true
+  # use poetry or uv for dependency management
+  USE_POETRY: true
+  # name of environment
+  PROJECT_NAME: gladheid
+  # list of submodule locations, relative to root project directory
+  SUBMODULES: ["lib/aa_streetnetwork_preparation"]
+  # extra arguments to uv sync command, for example extra or optional dependency groups
+  UV_SYNC_EXTRA: "--extra submodules"
+
+includes:
+  aa:
+    taskfile: https://github.com/JoeriA/aa_taskfile.git//taskfile.yml?ref=main
+    flatten: true
+
+# for setting up the repo (environment, precommit), run `task setup_repo`
