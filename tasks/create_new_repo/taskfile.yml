@@ -4,6 +4,25 @@ version: '3'
 
 tasks:
 
+  cookiecutter_check:
+    dir: '{{.USER_WORKING_DIR}}'
+    prompt: 'There is already a folder with repo_name ({{.REPO_NAME}}) within directory {{.USER_WORKING_DIR}}. Continue devops setup on this repo?'
+    cmds:
+      - cmd: echo "Continue with next steps"
+        silent: true
+    status:
+      - test -d {{.REPO_NAME}} && exit 1 || exit 0
+  
+  cookiecutter:
+    dir: '{{.USER_WORKING_DIR}}'
+    prompt: 'This will setup a {{.REPO_TYPE}} with {{if .REPO_TYPE | contains "package"}}package_name={{.NAME}} and {{end}}repo_name={{.REPO_NAME}} within directory {{.USER_WORKING_DIR}}. Is this correct?'
+    cmds:
+      - cmd: echo "Follow the raptor cookiecutter steps"
+        silent: true
+      - cmd: cookiecutter {{.COOKIECUTTER_URL}} --directory {{.REPO_TYPE}} {{if .REPO_TYPE | contains "package"}}package_name={{.NAME}}{{end}} repo_name={{.REPO_NAME}}
+    status:
+      - test -d {{.REPO_NAME}}
+
   setup_devops_link:
     dir: '{{.RUN_DIR}}'
     prompt: If not done yet, create a new repo with name {{.REPO_NAME}} within {{.DEVOPS_ROOT}}, without readme and gitignore. Done?
@@ -25,3 +44,16 @@ tasks:
       - Check for comment resolution
       - Build validation (select pipeline created in previous step, probably called '{{.REPO_NAME}}')
       Done?
+
+  next_steps_pkg:
+    silent: true
+    cmds:
+      - echo "Done, you probably want to run the task 'setup_repo' within the repo directory next!"
+      - echo "1. Until included in cookiecutter, copy https://github.com/JoeriA/aa_taskfile/blob/main/taskfile_package_repo.yml into your repo and rename to taskfile.yml."
+      - echo "2. Open the taskfile.yml and check all vars values!"
+      - echo "3. Then run 'task setup_repo' in your terminal, while in your repo directory."
+
+  next_steps_proj:
+    silent: true
+    cmds:
+      - echo "Done!"

@@ -59,11 +59,16 @@ tasks:
         - NAME
         - name: REPO_TYPE
           enum: [package_repo, project_repo]
-    prompt: 'This will setup a {{.REPO_TYPE}} with {{if .REPO_TYPE | contains "package"}}package_name={{.NAME}} and {{end}}repo_name={{.REPO_NAME}} within directory {{.USER_WORKING_DIR}}. Is this correct?'
     cmds:
-      - cmd: echo "Follow the raptor cookiecutter steps"
-        silent: true
-      - cookiecutter {{.COOKIECUTTER_URL}} --directory {{.REPO_TYPE}} {{if .REPO_TYPE | contains "package"}}package_name={{.NAME}}{{end}} repo_name={{.REPO_NAME}}
+      - task: create_new_repo:cookiecutter_check
+        vars:
+          REPO_NAME: '{{.REPO_NAME}}'
+      - task: create_new_repo:cookiecutter
+        vars:
+          COOKIECUTTER_URL: '{{.COOKIECUTTER_URL}}'
+          NAME: '{{.NAME}}'
+          REPO_TYPE: '{{.REPO_TYPE}}'
+          REPO_NAME: '{{.REPO_NAME}}'
       - task: create_new_repo:setup_devops_link
         vars:
           RUN_DIR: '{{.USER_WORKING_DIR}}/{{.REPO_NAME}}'
@@ -82,8 +87,7 @@ tasks:
         vars:
           REPO_NAME: '{{.REPO_NAME}}'
           DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
-      - cmd: echo "Done, you probably want to run the task 'setup_repo' within the repo directory next!"
-        silent: true
+      - task: '{{if .REPO_TYPE | contains "package"}}create_new_repo:next_steps_pkg{{else}}create_new_repo:next_steps_proj{{end}}'
     preconditions:
       - sh: cookiecutter --version
         msg: "First install cookiecutter with 'pip install cookiecutter'"

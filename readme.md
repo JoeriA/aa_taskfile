@@ -12,6 +12,7 @@ Additionally, for some, by going through all tasks step-by-step makes it easier 
 ## Why github?
 
 I cannot get the remote taskfile part working with devops (both https with pat and ssh), and all examples only use github.
+If deemed useful, we should move it to the organization workspace.
 
 ## Installation
 
@@ -43,6 +44,7 @@ When code tunnel service doesn't work anymore (login token expired)
 ### create_new_repo
 
 Create new git repo based on raptor.
+Should be run in the directory in which you want to create a folder containing the repo.
 
 Arguments:
 - REPO_TYPE: package_repo (default), project_repo
@@ -50,6 +52,11 @@ Arguments:
 ### setup_repo
 
 Setup the current git repo: creating python environment, installing precommit, etc.
+Should be run in the repo itself using the following:
+
+1. Until included in cookiecutter, copy https://github.com/JoeriA/aa_taskfile/blob/main/taskfile_package_repo.yml into your repo and rename to taskfile.yml.
+2. Open the taskfile.yml and check all vars values!
+3. Then run 'task setup_repo' in your terminal, while in your repo directory.
 
 Arguments:
 - REPO_TYPE: package_repo (default), project_repo
