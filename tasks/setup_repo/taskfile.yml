@@ -9,7 +9,6 @@ includes:
 
 # these vars can be overwritten by setting them in .env (in directory of parent taskfile)
 vars:
-  UV_INSTALL_DIR: '{{default "~/.local/bin" .UV_INSTALL_DIR}}'
   CONDA_ENV_DIR: '{{default "/anaconda/envs" .CONDA_ENV_DIR}}'
   # NOTE: ~ for home dir is not interpreted correctly, will create ~ dir inside working directory for some uv commands
   UV_VENV_DIR: '{{default "/home/azureuser/venv" .UV_VENV_DIR}}'

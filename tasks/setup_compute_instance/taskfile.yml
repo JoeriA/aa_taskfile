@@ -2,6 +2,9 @@
 
 version: '3'
 
+vars:
+  UV_INSTALL_DIR: '{{default "/home/azureuser/.local/bin" .UV_INSTALL_DIR}}'
+
 tasks:
   install_vscode:
     cmds:
