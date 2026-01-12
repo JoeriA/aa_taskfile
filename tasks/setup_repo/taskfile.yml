@@ -4,7 +4,7 @@ version: '3'
 
 includes:
   setup_compute_instance:
-    taskfile: ../setup_compute_instance.yml
+    taskfile: ../setup_compute_instance/taskfile.yml
     internal: true
 
 # these vars can be overwritten by setting them in .env (in directory of parent taskfile)
