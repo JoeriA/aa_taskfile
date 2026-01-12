@@ -26,7 +26,7 @@ tasks:
   reinstall_code_tunnel_service:
     # check log of code tunnel service, check last 5 lines, give error if it contains the given string
     status:
-      - '{ timeout 1s code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
+      - '{ timeout 1s /snap/code/current/usr/share/code/bin/code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
     cmds:
       - task: reinstall_code_tunnel_service_tasks
 
