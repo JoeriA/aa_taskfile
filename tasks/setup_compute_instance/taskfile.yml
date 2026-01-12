@@ -10,10 +10,11 @@ tasks:
       - test -f /snap/bin/code
 
   enable_code_tunnel_service:
+    prompt: This will set up code tunnel service, starting the tunnel upon starting the compute instance. You need a github account, create one if necessary. Ready?
     cmds:
       - sudo loginctl enable-linger azureuser
       - code tunnel service install
-      - echo "Make sure log does not contain 'The authorization request is still pending', otherwise run task reinstall_code_tunnel_service."
+      - echo "Make sure log does not contain 'The authorization request is still pending', otherwise run task 'setup_compute_instance:reinstall_code_tunnel_service'."
       - code tunnel service log
   
   set_xdg:
@@ -32,3 +33,57 @@ tasks:
     preconditions:
       - sh: '[ -n "${XDG_RUNTIME_DIR}" ]'
         msg: XDG_RUNTIME_DIR is not set, please run 'eval $(task --taskfile https://github.com/JoeriA/aa_taskfile.git//taskfile.yml?ref=main set_xdg)' first!
+
+  setup_ssh_create_key:
+    cmds:
+      - echo "Follow the instructions to create a public-private key pair. You can strengthen it with a password (but this might become annoying after a while)."
+      - ssh-keygen
+    status:
+      - test -f /home/azureuser/.ssh/id_rsa.pub
+  
+  setup_ssh_print_key:
+    cmds:
+      - echo "We will now print your public key"
+      - cat /home/azureuser/.ssh/id_rsa.pub
+
+  setup_ssh_devops:
+    prompt: Go to https://dev.azure.com/GemeenteRotterdam/_usersSettings/keys, create new key and fill in the public key. Done?
+
+  set_git_default_branch:
+    cmds:
+      - git config --global init.defaultBranch main
+
+  install_cookiecutter:
+    cmds:
+      - pip install cookiecutter
+    status:
+      - cookiecutter --version
+  
+  setup_cookiecutter_config:
+    prompt: For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/x/15unBQ. Copy the default_context block, paste it in the next window and save with ctrl+x, Y. Did you copy the default_context?
+    cmds:
+      - nano ~/raptor_config.yml
+      - echo 'export COOKIECUTTER_CONFIG=~/raptor_config.yml' >> ~/.bashrc​
+    status:
+      - '[ -n "${COOKIECUTTER_CONFIG}" ]'
+
+  conda_init:
+    cmds:
+      - conda init
+
+  # install poetry
+  install_poetry:
+    cmds:
+      # default installation dir didn't work, install it somewhere where it will be picked up by $PATH (or add it)
+      - curl -sSL https://install.python-poetry.org | python3 -
+      - echo "export PATH="/home/azureuser/.local/bin:$PATH"" >> /home/azureuser/.bashrc
+    status:
+      - poetry --version
+
+  # install uv
+  install_uv:
+    cmds:
+      # default installation dir didn't work, install it somewhere where it will be picked up by $PATH (or add it)
+      - curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="{{.UV_INSTALL_DIR}}" sh
+    status:
+      - uv --version

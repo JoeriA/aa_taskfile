@@ -2,6 +2,11 @@
 
 version: '3'
 
+includes:
+  setup_compute_instance:
+    taskfile: ../setup_compute_instance.yml
+    internal: true
+
 # these vars can be overwritten by setting them in .env (in directory of parent taskfile)
 vars:
   UV_INSTALL_DIR: '{{default "~/.local/bin" .UV_INSTALL_DIR}}'
@@ -30,8 +35,8 @@ tasks:
       - task: register_git_maintenance
       # initialize git submodules
       - task: init_submodules
-      # install uv/poetry
-      - task: '{{if .USE_POETRY}}install_poetry{{else}}install_uv{{end}}'
+      # install uv/poetry if not done yet
+      - task: 'setup_compute_instance:{{if .USE_POETRY}}install_poetry{{else}}install_uv{{end}}'
       # create environment
       - task: '{{if .USE_CONDA}}create_conda_env{{else}}create_uv_env{{end}}'
       # install dependencies
@@ -66,23 +71,6 @@ tasks:
     status:
       # check whether submodules are already directories (bit complicated to reuse SUBMODULES var)
       - for path in {{join " " .SUBMODULES}}; do [ -d "$path" ]; done
-
-  # install poetry
-  install_poetry:
-    cmds:
-      # default installation dir didn't work, install it somewhere where it will be picked up by $PATH (or add it)
-      - curl -sSL https://install.python-poetry.org | python3 -
-      - echo "export PATH="/home/azureuser/.local/bin:$PATH"" >> /home/azureuser/.bashrc
-    status:
-      - poetry --version
-
-  # install uv
-  install_uv:
-    cmds:
-      # default installation dir didn't work, install it somewhere where it will be picked up by $PATH (or add it)
-      - curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="{{.UV_INSTALL_DIR}}" sh
-    status:
-      - uv --version
 
   # create python environment with uv
   create_uv_env:

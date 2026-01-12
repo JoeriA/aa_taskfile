@@ -44,6 +44,21 @@ tasks:
       # remove local branches already merged to main
       - git branch --merged develop | egrep -v "(^\*|main|develop)" | xargs git branch -d
   
+  # setup a new compute instance
+  setup_compute_instance:
+    cmds:
+      - task: setup_compute_instance:setup_ssh_create_key
+      - task: setup_compute_instance:setup_ssh_print_key
+      - task: setup_compute_instance:setup_ssh_devops
+      - task: setup_compute_instance:set_git_default_branch
+      - task: setup_compute_instance:install_cookiecutter
+      - task: setup_compute_instance:setup_cookiecutter_config
+      - task: setup_compute_instance:conda_init
+      - task: setup_compute_instance:install_poetry
+      - task: setup_compute_instance:install_uv
+      - task: setup_compute_instance:install_vscode
+      - task: setup_compute_instance:enable_code_tunnel_service
+
   # create new git repo based on raptor cookiecutter
   create_new_repo:
     vars:
@@ -60,6 +75,7 @@ tasks:
         - name: REPO_TYPE
           enum: [package_repo, project_repo]
     cmds:
+      - task: setup_compute_instance:install_cookiecutter
       - task: create_new_repo:cookiecutter_check
         vars:
           REPO_NAME: '{{.REPO_NAME}}'
@@ -89,7 +105,5 @@ tasks:
           DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
       - task: '{{if .REPO_TYPE | contains "package"}}create_new_repo:next_steps_pkg{{else}}create_new_repo:next_steps_proj{{end}}'
     preconditions:
-      - sh: cookiecutter --version
-        msg: "First install cookiecutter with 'pip install cookiecutter'"
       - sh: '[ -n "${COOKIECUTTER_CONFIG}" ]'
         msg: "For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/x/15unBQ"
