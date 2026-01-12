@@ -21,8 +21,16 @@ tasks:
   set_xdg:
     cmds:
       - echo "export XDG_RUNTIME_DIR=/run/user/$(id -u)"
-
+  
+  # status check before reinstall_code_tunnel_service, in separate task so precondition only runs when status fails
   reinstall_code_tunnel_service:
+    # check log of code tunnel service, check last 5 lines, give error if it contains the given string
+    status:
+      - '{ timeout 1s code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
+    cmds:
+      - task: reinstall_code_tunnel_service_tasks
+
+  reinstall_code_tunnel_service_tasks:
     cmds:
       - systemctl restart --user code-tunnel
       - cmd: sleep 1
@@ -30,9 +38,6 @@ tasks:
       - cmd: echo "Follow login instructions below, then stop status log with ctrl+c"
         silent: true
       - systemctl status --user code-tunnel
-    # check log of code tunnel service, check last 5 lines, give error if it contains the given string
-    status:
-      - '{ timeout 1s code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
     preconditions:
       - sh: '[ -n "${XDG_RUNTIME_DIR}" ]'
         msg: XDG_RUNTIME_DIR is not set, please run 'eval $(task --taskfile https://github.com/JoeriA/aa_taskfile.git//taskfile.yml?ref=main set_xdg)' first!
