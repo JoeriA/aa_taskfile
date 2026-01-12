@@ -13,9 +13,10 @@ tasks:
     prompt: This will set up code tunnel service, starting the tunnel upon starting the compute instance. You need a github account, create one if necessary. Ready?
     cmds:
       - sudo loginctl enable-linger azureuser
-      - code tunnel service install
-      - echo "Make sure log does not contain 'The authorization request is still pending', otherwise run task 'setup_compute_instance:reinstall_code_tunnel_service'."
-      - code tunnel service log
+      - /snap/code/current/usr/share/code/bin/code tunnel service install
+      - cmd: echo "Make sure log does not contain 'The authorization request is still pending', otherwise run task 'setup_compute_instance:reinstall_code_tunnel_service'."
+        silent: true
+      - /snap/code/current/usr/share/code/bin/code tunnel service log
   
   set_xdg:
     cmds:
@@ -24,8 +25,10 @@ tasks:
   reinstall_code_tunnel_service:
     cmds:
       - systemctl restart --user code-tunnel
-      - sleep 1
-      - echo "Follow login instructions below, then stop status log with ctrl+c"
+      - cmd: sleep 1
+        silent: true
+      - cmd: echo "Follow login instructions below, then stop status log with ctrl+c"
+        silent: true
       - systemctl status --user code-tunnel
     # check log of code tunnel service, check last 5 lines, give error if it contains the given string
     status:
@@ -36,18 +39,20 @@ tasks:
 
   setup_ssh_create_key:
     cmds:
-      - echo "Follow the instructions to create a public-private key pair. You can strengthen it with a password (but this might become annoying after a while)."
+      - cmd: echo "Follow the instructions to create a public-private key pair (use default location!). You can strengthen it with a password (but this might become annoying after a while)."
+        silent: true
       - ssh-keygen
     status:
       - test -f /home/azureuser/.ssh/id_rsa.pub
   
   setup_ssh_print_key:
     cmds:
-      - echo "We will now print your public key"
+      - cmd: echo "We will now print your public key"
+        silent: true
       - cat /home/azureuser/.ssh/id_rsa.pub
 
   setup_ssh_devops:
-    prompt: Go to https://dev.azure.com/GemeenteRotterdam/_usersSettings/keys, create new key and fill in the public key. Done?
+    prompt: Go to https://dev.azure.com/GemeenteRotterdam/_usersSettings/keys create new key and fill in the public key. Done?
 
   set_git_default_branch:
     cmds:
@@ -60,7 +65,7 @@ tasks:
       - cookiecutter --version
   
   setup_cookiecutter_config:
-    prompt: For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/x/15unBQ. Copy the default_context block, paste it in the next window and save with ctrl+x, Y. Did you copy the default_context?
+    prompt: For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/707952856/1.+Setting+up+new+compute+instance#1.4.1.-Create-config-file . Copy the default_context block, paste it in the next window and save with ctrl+x, Y, enter. Did you copy the default_context?
     cmds:
       - nano ~/raptor_config.yml
       - echo 'export COOKIECUTTER_CONFIG=~/raptor_config.yml' >> ~/.bashrc​
