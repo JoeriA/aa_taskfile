@@ -27,6 +27,8 @@ tasks:
 
   _main:
     internal: true
+    requires:
+      vars: [USE_CONDA, USE_POETRY, PROJECT_NAME, PYTHON_VERSION]
     cmds:
       # check some input variables
       - task: check_vars
