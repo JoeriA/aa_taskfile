@@ -14,13 +14,19 @@ tasks:
     cmds:
       - sudo loginctl enable-linger azureuser
       - /snap/code/current/usr/share/code/bin/code tunnel service install
-      - cmd: echo "Make sure log does not contain 'The authorization request is still pending', otherwise run task 'setup_compute_instance:reinstall_code_tunnel_service'."
+      - cmd: echo "This was the last step in the setup!"
         silent: true
-      - /snap/code/current/usr/share/code/bin/code tunnel service log
+      - cmd: echo "We will now check whether authorization was succesful. Follow instructions if you get a failure."
+        silent: true
+      - cmd: echo "Then you are able to connect to your compute instance and setup repos with other tasks (see readme)."
+        silent: true
+      - task: reinstall_code_tunnel_service
   
   set_xdg:
     cmds:
       - echo "export XDG_RUNTIME_DIR=/run/user/$(id -u)"
+      - cmd: echo "Done, you probably want to rerun 'setup_compute_instance:reinstall_code_tunnel_service' again."
+        silent: true
   
   # status check before reinstall_code_tunnel_service, in separate task so precondition only runs when status fails
   reinstall_code_tunnel_service:
@@ -28,9 +34,10 @@ tasks:
     status:
       - '{ timeout 1s /snap/code/current/usr/share/code/bin/code tunnel service log; } | tail -n 5 | grep -qv "The authorization request is still pending"'
     cmds:
-      - task: reinstall_code_tunnel_service_tasks
+      - task: _reinstall_code_tunnel_service
 
-  reinstall_code_tunnel_service_tasks:
+  _reinstall_code_tunnel_service:
+    internal: true
     cmds:
       - systemctl restart --user code-tunnel
       - cmd: sleep 1

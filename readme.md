@@ -35,7 +35,7 @@ You can add arguments to a task by appending `KEY=VALUE` to the command. Below o
 
 ### setup_compute_instance
 
-To do.
+Setting up a new compute instance. Setting up ssh key to connect with devops, setting code tunnel, installing poetry, uv, etc.
 
 #### setup_compute_instance:reinstall_code_tunnel_service
 
