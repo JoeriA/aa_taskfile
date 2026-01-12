@@ -75,6 +75,7 @@ tasks:
   create_uv_env:
     env:
       UV_PROJECT_ENVIRONMENT: "{{.VENV_DIR}}"
+      PYTHON_VERSION: "{{.PYTHON_VERSION}}"
     cmds:
       - uv venv --python {{.PYTHON_VERSION}}
     status:
