@@ -56,6 +56,7 @@ tasks:
       - task: setup_compute_instance:conda_init
       - task: setup_compute_instance:install_poetry
       - task: setup_compute_instance:install_uv
+      - task: setup_compute_instance:setup_git_maintenance
       - task: setup_compute_instance:install_vscode
       - task: setup_compute_instance:enable_code_tunnel_service
 

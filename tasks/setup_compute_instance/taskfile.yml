@@ -113,3 +113,8 @@ tasks:
       - curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR="{{.UV_INSTALL_DIR}}" sh
     status:
       - uv --version
+
+  setup_git_maintenance:
+    cmds:
+      - sudo git maintenance start
+      - git config --global maintenance.strategy incremental
