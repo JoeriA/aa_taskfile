@@ -158,3 +158,12 @@ tasks:
     cmds:
       - echo "Setup complete. For vscode, select interpreter (ctrl+shift+p) {{.PROJECT_NAME}} (Conda)."
     silent: true
+
+  convert_poetry_to_uv:
+    cmds:
+      # making sure uv is installed
+      - task: setup_compute_instance:install_uv
+      # migrate to uv
+      - uvx migrate-to-uv
+      - cmd: echo "Finish migration by setting USE_POETRY=false in your taskfile and run task setup_repo."
+    
