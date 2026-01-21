@@ -122,15 +122,19 @@ tasks:
 
   # install precommit hook
   precommit_install:
+    # set uv project directory
+    env:
+      UV_PROJECT_ENVIRONMENT: "{{.VENV_DIR}}"
     # option to change working directory, to use for submodules
     dir: '{{.DIR}}'
     vars:
       DIR: '{{.DIR| default "."}}'
     cmds:
-      - pre-commit install
+      # use uv run if using uv (so it works if environment is not yet activated)
+      - '{{if not .USE_POETRY }}uv run {{end}}pre-commit install'
     preconditions:
-      - sh: pre-commit --version
-        msg: "Pre-commit not installed. Switch to the correct venv or install pre-commit with uv."
+      - sh: '{{if not .USE_POETRY }}uv run {{end}}pre-commit --version'
+        msg: "Pre-commit not installed. Switch to the correct venv or install pre-commit with poetry/uv."
     status:
       # hooks for submodules are in modules subdirectory of .git
       # (assuming submodules are in lib subdirectory within project working directory,
