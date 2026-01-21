@@ -23,7 +23,7 @@ If deemed useful, we should move it to the organization workspace.
 
 ### VScode plugin
 
-- Recommended to install the vscode extension 'taskfile-launcher' (the official 'task' extension does not work yet with mounted disks).
+- Recommended to install the vscode extension 'taskfile-launcher' (the official 'task' extension does not work yet with mounted disks). Note: tasks started from the plugin will always run in the root of your vscode project, you have to use the terminal to run in another directory.
 
 ## Overview of tasks
 

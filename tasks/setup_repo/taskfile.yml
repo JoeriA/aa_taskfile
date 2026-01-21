@@ -93,7 +93,7 @@ tasks:
   # install python dependencies with poetry
   poetry_sync:
     cmds:
-      - poetry env use {{.VENV_DIR}}/bin/python
+      - conda activate {{.PROJECT_NAME}}
       - poetry sync
 
   # install python dependencies with uv
