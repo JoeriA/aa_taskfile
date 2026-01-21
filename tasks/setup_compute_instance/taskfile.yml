@@ -80,12 +80,18 @@ tasks:
       - cookiecutter --version
   
   setup_cookiecutter_config:
+    cmds:
+      - task: create_cookiecutter_config
+      - echo 'export COOKIECUTTER_CONFIG=~/raptor_config.yml' >> ~/.bashrc
+    status:
+      - '[ -n "${COOKIECUTTER_CONFIG}" ]'
+  
+  create_cookiecutter_config:
     prompt: For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/707952856/1.+Setting+up+new+compute+instance#1.4.1.-Create-config-file . Copy the default_context block, paste it in the next window and save with ctrl+x, Y, enter. Did you copy the default_context?
     cmds:
       - nano ~/raptor_config.yml
-      - echo 'export COOKIECUTTER_CONFIG=~/raptor_config.yml' >> ~/.bashrc​
     status:
-      - '[ -n "${COOKIECUTTER_CONFIG}" ]'
+      - test -f ~/raptor_config.yml
 
   conda_init:
     cmds:

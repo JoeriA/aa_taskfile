@@ -75,7 +75,10 @@ tasks:
         - name: REPO_TYPE
           enum: [package_repo, project_repo]
     cmds:
+      # two preconditions, steps from setup_compute_instance, will skip if already satisfied
       - task: setup_compute_instance:install_cookiecutter
+      - task: setup_compute_instance:setup_cookiecutter_config
+      # continue
       - task: create_new_repo:cookiecutter_check
         vars:
           REPO_NAME: '{{.REPO_NAME}}'
@@ -104,6 +107,3 @@ tasks:
           REPO_NAME: '{{.REPO_NAME}}'
           DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
       - task: '{{if .REPO_TYPE | contains "package"}}create_new_repo:next_steps_pkg{{else}}create_new_repo:next_steps_proj{{end}}'
-    preconditions:
-      - sh: '[ -n "${COOKIECUTTER_CONFIG}" ]'
-        msg: "For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/x/15unBQ"
