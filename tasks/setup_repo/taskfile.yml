@@ -93,8 +93,10 @@ tasks:
   # install python dependencies with poetry
   poetry_sync:
     cmds:
-      - conda activate {{.PROJECT_NAME}}
       - poetry sync
+    preconditions:
+      - sh: '[ "$CONDA_DEFAULT_ENV" = "{{.PROJECT_NAME}}" ]'
+        msg: First activate the conda environment with 'conda activate {{.PROJECT_NAME}}'
 
   # install python dependencies with uv
   uv_sync:
