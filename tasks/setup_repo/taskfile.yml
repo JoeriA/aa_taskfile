@@ -130,10 +130,10 @@ tasks:
     vars:
       DIR: '{{.DIR| default "."}}'
     cmds:
-      # use uv run if using uv (so it works if environment is not yet activated)
-      - '{{if not .USE_POETRY }}uv run {{end}}pre-commit install'
+      # use poetry/uv run (so it works if environment is not yet activated)
+      - '{{if .USE_POETRY }}poetry run{{else}}uv run{{end}} pre-commit install'
     preconditions:
-      - sh: '{{if not .USE_POETRY }}uv run {{end}}pre-commit --version'
+      - sh: '{{if .USE_POETRY }}poetry run{{else}}uv run{{end}} pre-commit --version'
         msg: "Pre-commit not installed. Switch to the correct venv or install pre-commit with poetry/uv."
     status:
       # hooks for submodules are in modules subdirectory of .git
