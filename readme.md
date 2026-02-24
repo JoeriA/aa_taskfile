@@ -9,17 +9,42 @@ This is a taskfile containing a collection of commands for various tasks, such a
 Compared to following the confluence documentation, this taskfile will automates as many tasks as possible.
 Additionally, for some, by going through all tasks step-by-step makes it easier to follow everything and not forget something.
 
-## Why github?
-
-I cannot get the remote taskfile part working with devops (both https with pat and ssh), and all examples only use github.
-If deemed useful, we should move it to the organization workspace.
-
 ## Installation
 
-1. Install taskfile: `sudo snap install task --classic`
-2. Enable remote taskfiles: `echo 'export TASK_X_REMOTE_TASKFILES=1' >> ~/.bashrc​`
+1. Install taskfile, on Ubuntu: `sudo snap install task --classic`. See https://taskfile.dev/docs/installation for other methods.
+2. Enable remote taskfiles permanently: `echo 'export TASK_X_REMOTE_TASKFILES=1' >> ~/.bashrc​`
 3. Restart terminal/shell, or run: `export TASK_X_REMOTE_TASKFILES=1`
 4. Run a task with `task --taskfile https://github.com/JoeriA/aa_taskfile.git//taskfile.yml?ref=main TASK_NAME`. See below for more examples.
+
+### Config
+
+#### Taskfile config
+
+Create a .taskrc.yml in your home folder, for example with `nano ~/.taskrc.yml`. Below an example:
+
+```
+interactive: true  # get prompts for missing variables instead of errors
+experiments:
+  remote_taskfiles: 1  # enable remote taskfiles
+remote:
+  cache-dir: ~/.task  # store cache in home folder, not within git repos
+  trusted-hosts:
+    - github.com  # disable prompts when downloading remote taskfiles from github, remove setting for extra security
+```
+
+#### Environment variables
+
+Create a taskfile.env file in your home folder, for example with `nano ~/taskfile.env`.
+
+For now the following variables can be set:
+
+- COOKIECUTTER_URL: the url pointing to the cookiecutter url (defaults to [raptor](https://github.com/Municipality-of-Rotterdam/raptor)).
+- COOKIECUTTER_CONFIG: url pointing to cookiecutter config instructions (defaults to [raptor](https://github.com/Municipality-of-Rotterdam/raptor) readme).
+- GIT_ROOT_HTTPS: url to git provider, with organization/project names, without trailing slash. Example: https://dev.azure.com/ORGANISATION/PROJECT.
+- GIT_ROOT: base https/ssh url without trailing slash. Example: git@ssh.dev.azure.com:v3/ORGANISATION/PROJECT.
+- GIT_PUBLIC_KEY_URL: url on git provider to add public keys. Example: https://dev.azure.com/ORGANISATION/_usersSettings/keys.
+
+Only GIT_ROOT is required, the others have defaults (but some steps might be skipped).
 
 ### VScode plugin
 
@@ -35,7 +60,7 @@ You can add arguments to a task by appending `KEY=VALUE` to the command. Below o
 
 ### setup_compute_instance
 
-Setting up a new compute instance. Setting up ssh key to connect with devops, setting code tunnel, installing poetry, uv, etc.
+Setting up a new compute instance. Setting up ssh key to connect with git, setting code tunnel, installing poetry, uv, etc.
 
 #### setup_compute_instance:reinstall_code_tunnel_service
 
@@ -47,7 +72,9 @@ Create new git repo based on raptor.
 Should be run in the directory in which you want to create a folder containing the repo.
 
 Arguments:
+- PKG_NAME: name of the python package (containing letters, numbers and underscores)
 - REPO_TYPE: package_repo (default), project_repo
+- GIT_ROOT: base https/ssh url without trailing slash. Example: git@ssh.dev.azure.com:v3/ORGANISATION/PROJECT.
 
 ### setup_repo
 

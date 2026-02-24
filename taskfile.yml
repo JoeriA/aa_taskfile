@@ -5,6 +5,9 @@
 
 version: '3'
 
+dotenv:
+  - '{{.HOME}}/taskfile.env'
+
 includes:
   setup_compute_instance: tasks/setup_compute_instance/taskfile.yml
   create_new_repo: tasks/create_new_repo/taskfile.yml
@@ -49,7 +52,7 @@ tasks:
     cmds:
       - task: setup_compute_instance:setup_ssh_create_key
       - task: setup_compute_instance:setup_ssh_print_key
-      - task: setup_compute_instance:setup_ssh_devops
+      - task: setup_compute_instance:setup_ssh
       - task: setup_compute_instance:set_git_default_branch
       - task: setup_compute_instance:install_cookiecutter
       - task: setup_compute_instance:setup_cookiecutter_config
@@ -64,15 +67,15 @@ tasks:
   create_new_repo:
     vars:
       REPO_TYPE: '{{.REPO_TYPE | default "package_repo"}}'
-      COOKIECUTTER_URL: '{{.COOKIECUTTER_URL | default "git@ssh.dev.azure.com:v3/GemeenteRotterdam/DAPR/raptor"}}'
-      DEVOPS_ROOT: "https://dev.azure.com/GemeenteRotterdam/DAPR"
-      DEVOPS_ROOT_SSH: "git@ssh.dev.azure.com:v3/GemeenteRotterdam/DAPR"
-      REPO_NAME_DIRTY: '{{if .REPO_TYPE | contains "package"}}pkg_{{end}}{{.NAME}}'
+      COOKIECUTTER_URL: '{{.COOKIECUTTER_URL | default "https://github.com/Municipality-of-Rotterdam/raptor.git"}}'
+      GIT_ROOT_HTTPS: '{{.GIT_ROOT_HTTPS | default "your git service provicer (github/devops)"}}'
+      REPO_NAME_DIRTY: '{{if .REPO_TYPE | contains "package"}}pkg_{{end}}{{.PKG_NAME}}'
       REPO_NAME: '{{.REPO_NAME_DIRTY | lower | replace " " "" | replace "-" ""}}'
     dir: '{{.USER_WORKING_DIR}}'
     requires:
       vars:
-        - NAME
+        - PKG_NAME
+        - GIT_ROOT
         - name: REPO_TYPE
           enum: [package_repo, project_repo]
     cmds:
@@ -86,25 +89,28 @@ tasks:
       - task: create_new_repo:cookiecutter
         vars:
           COOKIECUTTER_URL: '{{.COOKIECUTTER_URL}}'
-          NAME: '{{.NAME}}'
+          NAME: '{{.PKG_NAME}}'
           REPO_TYPE: '{{.REPO_TYPE}}'
           REPO_NAME: '{{.REPO_NAME}}'
-      - task: create_new_repo:setup_devops_link
+      - task: create_new_repo:add_remote
         vars:
           RUN_DIR: '{{.USER_WORKING_DIR}}/{{.REPO_NAME}}'
           REPO_NAME: '{{.REPO_NAME}}'
-          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
-          DEVOPS_ROOT_SSH: '{{.DEVOPS_ROOT_SSH}}'
-      - task: create_new_repo:setup_default_branch
+          GIT_ROOT_HTTPS: '{{.GIT_ROOT_HTTPS}}'
+          GIT_ROOT: '{{.GIT_ROOT}}'
+      - task: create_new_repo:setup_build_pipeline_devops
+        if: '{{.GIT_ROOT_HTTPS | contains "dev.azure.com"}}'
         vars:
           REPO_NAME: '{{.REPO_NAME}}'
-          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
-      - task: create_new_repo:setup_build_pipeline
+          GIT_ROOT_HTTPS: '{{.GIT_ROOT_HTTPS}}'
+      - task: create_new_repo:setup_build_policies_devops
+        if: '{{.GIT_ROOT_HTTPS | contains "dev.azure.com"}}'
         vars:
           REPO_NAME: '{{.REPO_NAME}}'
-          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
-      - task: create_new_repo:setup_build_policies
+          GIT_ROOT_HTTPS: '{{.GIT_ROOT_HTTPS}}'
+      - task: create_new_repo:setup_default_branch_devops
+        if: '{{.GIT_ROOT_HTTPS | contains "dev.azure.com"}}'
         vars:
           REPO_NAME: '{{.REPO_NAME}}'
-          DEVOPS_ROOT: '{{.DEVOPS_ROOT}}'
+          GIT_ROOT_HTTPS: '{{.GIT_ROOT_HTTPS}}'
       - task: '{{if .REPO_TYPE | contains "package"}}create_new_repo:next_steps_pkg{{else}}create_new_repo:next_steps_proj{{end}}'

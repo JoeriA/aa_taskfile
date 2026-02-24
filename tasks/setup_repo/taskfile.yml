@@ -106,11 +106,6 @@ tasks:
       - task: set_uv_project_env_source
       # use UV_SYNC_EXTRA to pass other options (such as which groups to sync)
       - uv sync {{.UV_SYNC_EXTRA}}
-    preconditions:
-      - sh: test -n "${UV_INDEX_AA_PACKAGES_USERNAME}"
-        msg: "No environment variable UV_INDEX_AA_PACKAGES_USERNAME found. See https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/234095159/UV#Setup-private-artifacts-feed-(optional)."
-      - sh: test -n "${UV_INDEX_AA_PACKAGES_PASSWORD}"
-        msg: "No environment variable UV_INDEX_AA_PACKAGES_PASSWORD found. See https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/234095159/UV#Setup-private-artifacts-feed-(optional)."
 
   # for uv, set uv project environment variable permanently
   set_uv_project_env_source:

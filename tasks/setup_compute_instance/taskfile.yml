@@ -66,8 +66,10 @@ tasks:
         silent: true
       - cat /home/azureuser/.ssh/id_rsa.pub
 
-  setup_ssh_devops:
-    prompt: Go to https://dev.azure.com/GemeenteRotterdam/_usersSettings/keys create new key and fill in the public key. Done?
+  setup_ssh:
+    vars:
+      GIT_PUBLIC_KEY_URL: '{{.GIT_PUBLIC_KEY_URL | default "your git hosting service (github/devops)"}}'
+    prompt: Go to {{.GIT_PUBLIC_KEY_URL}}, add a new key and use the public key from above. Done?
 
   set_git_default_branch:
     cmds:
@@ -87,7 +89,9 @@ tasks:
       - '[ -n "${COOKIECUTTER_CONFIG}" ]'
   
   create_cookiecutter_config:
-    prompt: For simplicity, first setup a cookiecutter config.yml, see https://gemeenterotterdam.atlassian.net/wiki/spaces/TAA/pages/707952856/1.+Setting+up+new+compute+instance#1.4.1.-Create-config-file . Copy the default_context block, paste it in the next window and save with ctrl+x, Y, enter. Did you copy the default_context?
+    vars:
+      COOKIECUTTER_CONFIG: '{{.COOKIECUTTER_CONFIG | default "https://github.com/Municipality-of-Rotterdam/raptor?tab=readme-ov-file#32-create-the-repo-using-the-raptors-url-its-recommended-to-use-ssh"}}'
+    prompt: For simplicity, first setup a cookiecutter config.yml, see {{.COOKIECUTTER_CONFIG}}. Copy the default_context block, paste it in the next window and save with ctrl+x, Y, enter. Did you copy the default_context?
     cmds:
       - nano ~/raptor_config.yml
     status:
