@@ -40,11 +40,21 @@ For now the following variables can be set:
 
 - COOKIECUTTER_URL: the url pointing to the cookiecutter url (defaults to [raptor](https://github.com/Municipality-of-Rotterdam/raptor)).
 - COOKIECUTTER_CONFIG: url pointing to cookiecutter config instructions (defaults to [raptor](https://github.com/Municipality-of-Rotterdam/raptor) readme).
-- GIT_ROOT_HTTPS: url to git provider, with organization/project names, without trailing slash. Example: https://dev.azure.com/ORGANISATION/PROJECT.
+- GIT_ROOT_HTTPS: url to git provider, with organisation/project names, without trailing slash. Example: https://dev.azure.com/ORGANISATION/PROJECT.
 - GIT_ROOT: base https/ssh url without trailing slash. Example: git@ssh.dev.azure.com:v3/ORGANISATION/PROJECT.
 - GIT_PUBLIC_KEY_URL: url on git provider to add public keys. Example: https://dev.azure.com/ORGANISATION/_usersSettings/keys.
 
 Only GIT_ROOT is required, the others have defaults (but some steps might be skipped).
+
+Full example:
+
+```
+COOKIECUTTER_URL=https://github.com/Municipality-of-Rotterdam/raptor  # link to cookiecutter repo
+COOKIECUTTER_CONFIG=https://github.com/Municipality-of-Rotterdam/raptor  # link to cookiecutter config file for your team
+GIT_ROOT_HTTPS=https://dev.azure.com/ORGANISATION/PROJECT  # git root https url (including organisation/project)
+GIT_ROOT=git@ssh.dev.azure.com:v3/ORGANISATION/PROJECT  # git root ssh url (including organisation/project), without trailing slash
+GIT_PUBLIC_KEY_URL=https://dev.azure.com/ORGANISATION/_usersSettings/keys  # git https url to page for adding new public keys
+```
 
 ### VScode plugin
 
